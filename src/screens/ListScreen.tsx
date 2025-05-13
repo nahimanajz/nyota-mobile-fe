@@ -1,4 +1,4 @@
-import React, {useState,useCallback } from "react";
+import React, {useState,useCallback, useEffect } from "react";
 import { View, Text, FlatList, Button, StyleSheet, Alert } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { Note } from "../types/Note";
@@ -6,6 +6,7 @@ import { fetchNotes } from "../services/notes.service";
 import { getLocalNotes, syncNotes } from "../utils/syncNotes";
 import { INavigationProps } from "../interfaces";
 import { useFocusEffect } from "@react-navigation/native";
+import { initializeSocket } from "../services/websocket.service";
 
 const NotesListScreen = ({ navigation }: INavigationProps) => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -27,7 +28,7 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
 
   const sortedNotes = () =>{
 
-  return [...notes].sort((a, b) => {
+  return notes.sort((a, b) => {
   const dateA = a?.updatedAt || a?.createdAt || Date.now();
   const dateB = b?.updatedAt || b?.createdAt || Date.now();
 
@@ -55,12 +56,33 @@ useFocusEffect(
       return () => unsubscribe();
     }, [isOffline])
   );
+useEffect(() => {
+    // Initialize socket with sync callback
+    const cleanup = initializeSocket((syncedNote) => {
+      setNotes(prevNotes => {
+        const noteExists = prevNotes.some(note => note.id === syncedNote.id);
+        if (noteExists) {
+          // Update existing note
+          return prevNotes.map(note => 
+            note.id === syncedNote.id ? syncedNote : note
+          );
+        } else {
+          // Add new note
+          return [...prevNotes, syncedNote];
+        }
+      });
+    });
+
+    return () => {
+      cleanup();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
       {isOffline && <Text style={styles.offlineBanner}>You are Offline</Text>}
       <FlatList
-        data={sortedNotes()}
+        data={notes}
         keyExtractor={(item) => item.id?.toString() || String(Math.random())}
         renderItem={({ item }) => (
           <View style={styles.note}>

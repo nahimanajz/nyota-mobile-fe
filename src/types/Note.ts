@@ -4,5 +4,6 @@ export type Note = {
     content:string;
     updatedAt?: string | number;
     createdAt?:string | number;
+    isSynced:boolean
 
 }

@@ -7,6 +7,9 @@ import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import { INavigationProps } from "../interfaces";
 import { alertResponse } from "../utils/alert.response";
+import { Note } from "../types/Note";
+import { emitNoteSync } from '../services/websocket.service';
+
 
 const HomeScreen = ({ navigation }: INavigationProps) => {
   const [title, setTitle] = useState("");
@@ -24,10 +27,11 @@ const HomeScreen = ({ navigation }: INavigationProps) => {
       return;
     }
 
-    const note = {
+    const note:Note = {
       id: uuidv4(),
       title,
       content,
+      isSynced:false
     };
 
     try {
@@ -36,8 +40,9 @@ const HomeScreen = ({ navigation }: INavigationProps) => {
       );
 
       if (isConnected) {
-        const response = await createNote(note);
+        const response = await createNote({...note, isSynced:true});
         if (response) {
+          emitNoteSync(note);
           alertResponse("ONLINE", "Note saved successfully", handleOnPress);
         }
       } else {
