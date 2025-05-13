@@ -68,7 +68,7 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
 
   if (isSyncing) {
     return <Loader isSyncing={isSyncing} />;
-  }
+  } else
   return (
     <View style={styles.container}>
       {isOffline && <Text style={styles.offlineBanner}>You are Offline</Text>}
@@ -80,6 +80,12 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
           <View style={styles.note}>
             <Text style={styles.title}>{item.title}</Text>
             <Text>{item.content}</Text>
+             <Text style={[
+              styles.syncStatus,
+              item.isSynced ? styles.synced : styles.unsynced
+            ]}>
+              {item.isSynced ? 'Synced' : 'Not synced'}
+            </Text>
           </View>
         )}
       />
@@ -104,6 +110,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   title: { fontWeight: "bold", fontSize: 16 },
+  synced: {
+    color: 'green',
+  },
+  unsynced: {
+    color: 'orange',
+  },
+  syncStatus: {
+    fontSize: 12,
+    marginTop: 4
+  },
+  syncedContent: {
+    fontSize: 14,
+    marginVertical: 8,
+    textDecorationLine: 'line-through',
+    color: '#666',
+  },
+  
 });
 
 export default NotesListScreen;
