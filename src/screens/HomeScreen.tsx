@@ -80,7 +80,10 @@ const HomeScreen = ({ navigation }: INavigationProps) => {
         onChangeText={setContent}
         multiline
       />
-      <Button title="Save Note" onPress={handleSaveNote} />
+      <View style={styles.buttonContainer}>
+
+      <Button title="Save Note" onPress={handleSaveNote} color={"#fff"} />
+      </View>
     </View>
   );
 };
@@ -99,6 +102,12 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: "top",
+  },
+  buttonContainer: {
+    marginTop: 10,
+    backgroundColor: "#FF8C00",
+    borderRadius: 8,
+    overflow: "hidden",
   },
 });
 

@@ -3,6 +3,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "./src/screens/HomeScreen";
 import ListScreen from "./src/screens/ListScreen";
+import * as Notifications from 'expo-notifications';
+import { useEffect } from "react";
+import { Alert } from "react-native";
+
+
 
 const Tab = createBottomTabNavigator();
 
@@ -12,6 +17,18 @@ interface TabIconProps {
   size: number;
 }
 export default function App() {
+
+  useEffect(() => {
+    const requestPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+       
+        Alert.alert('Notification permissions not granted')
+      }
+    };
+
+    requestPermissions();
+  }, []);
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -20,19 +37,38 @@ export default function App() {
             let iconName: keyof typeof Ionicons.glyphMap =
               route.name === "Home"
                 ? focused
-                  ? "home"
-                  : "home-outline"
+                  ? "create"
+                  : "create-outline"
                 : focused
-                ? "list"
-                : "list-outline";
+                ? "document-text"
+                : "document-text-outline";
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: "tomato",
-          tabBarInactiveTintColor: "gray",
+          headerStyle: {
+            backgroundColor: '#FF8C00',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+          tabBarActiveTintColor: '#FF8C00',
+          tabBarInactiveTintColor: 'gray',
         })}
       >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="List" component={ListScreen} />
+        <Tab.Screen 
+          name="Home" 
+          component={HomeScreen} 
+          options={{
+            title: "Create Note"
+          }}
+        />
+        <Tab.Screen 
+          name="List" 
+          component={ListScreen}
+          options={{
+            title: "Notes"
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -1,5 +1,7 @@
 import { io } from 'socket.io-client';
 import { Note } from '../types/Note';
+import { scheduleSyncNotification } from './notification.service';
+
 
 type SyncCallback = (note: Note) => void;
 
@@ -13,32 +15,36 @@ export const socket = io(BASE_URL, {
 
 export const initializeSocket = (onSync?: SyncCallback) => {
   socket.on('connect', () => {
-    console.log('Socket connected');
+   scheduleSyncNotification("web socket connected");
   });
 
   socket.on('disconnect', () => {
-    console.log('Socket disconnected');
+   scheduleSyncNotification("web socket disconnected");
+    
   });
 
   socket.on('connect_error', (error) => {
-    console.log('Socket connection error:', error);
+   scheduleSyncNotification(`web socket faced an error`);
+   
   });
 
   // Listen for note creation confirmation
   socket.on('note:created', (note: Note) => {
-    console.log('Note created and synced:', note);
+   scheduleSyncNotification(`${note.title} created`);
     onSync?.(note);
   });
 
   // Listen for note sync confirmation
   socket.on('note:synced', (note: Note) => {
-    console.log('Note synced with server:', note);
+   scheduleSyncNotification(`${note.title} Note synced with server`);
+
     onSync?.(note);
   });
 
   // Listen for sync error events
   socket.on('sync:error', (error: any) => {
-    console.error('Sync error:', error);
+     scheduleSyncNotification(`error while syncing`);
+
   });
 
   return () => {

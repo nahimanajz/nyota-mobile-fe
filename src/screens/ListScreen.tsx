@@ -23,7 +23,7 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
       const response = isOffline ? await getLocalNotes() : await fetchNotes();
       setNotes(response);
     } catch (error) {
-      console.log({ error });
+      
       Alert.alert("Error", "Failded to load data");
     }
   };
@@ -69,30 +69,33 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
   if (isSyncing) {
     return <Loader isSyncing={isSyncing} />;
   } else
-  return (
-    <View style={styles.container}>
-      {isOffline && <Text style={styles.offlineBanner}>You are Offline</Text>}
+    return (
+      <View style={styles.container}>
+        {isOffline && <Text style={styles.offlineBanner}>You are Offline</Text>}
 
-      <FlatList
-        data={notes}
-        keyExtractor={(item) => item.id?.toString() || String(Math.random())}
-        renderItem={({ item }) => (
-          <View style={styles.note}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text>{item.content}</Text>
-             <Text style={[
-              styles.syncStatus,
-              item.isSynced ? styles.synced : styles.unsynced
-            ]}>
-              {item.isSynced ? 'Synced' : 'Not synced'}
-            </Text>
-          </View>
-        )}
-      />
-
-      <Button title="Create Note" onPress={handleNavigation} />
-    </View>
-  );
+        <FlatList
+          data={notes}
+          keyExtractor={(item) => item.id?.toString() || String(Math.random())}
+          renderItem={({ item }) => (
+            <View style={styles.note}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text>{item.content}</Text>
+              <Text
+                style={[
+                  styles.syncStatus,
+                  item.isSynced ? styles.synced : styles.unsynced,
+                ]}
+              >
+                {item.isSynced ? "Synced" : "Not synced"}
+              </Text>
+            </View>
+          )}
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Create Note" onPress={handleNavigation} color="#fff" />
+        </View>
+      </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -103,6 +106,12 @@ const styles = StyleSheet.create({
     padding: 8,
     textAlign: "center",
   },
+  buttonContainer: {
+    marginTop: 10,
+    backgroundColor: "#FF8C00",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
   note: {
     marginBottom: 16,
     padding: 16,
@@ -111,22 +120,21 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: "bold", fontSize: 16 },
   synced: {
-    color: 'green',
+    color: "green",
   },
   unsynced: {
-    color: 'orange',
+    color: "orange",
   },
   syncStatus: {
     fontSize: 12,
-    marginTop: 4
+    marginTop: 4,
   },
   syncedContent: {
     fontSize: 14,
     marginVertical: 8,
-    textDecorationLine: 'line-through',
-    color: '#666',
+    textDecorationLine: "line-through",
+    color: "#666",
   },
-  
 });
 
 export default NotesListScreen;
