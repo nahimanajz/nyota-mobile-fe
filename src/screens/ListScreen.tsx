@@ -1,4 +1,4 @@
-import React, {useState,useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, FlatList, Button, StyleSheet, Alert } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { Note } from "../types/Note";
@@ -7,10 +7,12 @@ import { getLocalNotes, syncNotes } from "../utils/syncNotes";
 import { INavigationProps } from "../interfaces";
 import { useFocusEffect } from "@react-navigation/native";
 import { initializeSocket } from "../services/websocket.service";
+import { Loader } from "../components/Loader";
 
 const NotesListScreen = ({ navigation }: INavigationProps) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isOffline, setIsOffline] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleNavigation = () => {
     navigation.navigate("Home");
@@ -21,53 +23,39 @@ const NotesListScreen = ({ navigation }: INavigationProps) => {
       const response = isOffline ? await getLocalNotes() : await fetchNotes();
       setNotes(response);
     } catch (error) {
-      console.log({error})
+      console.log({ error });
       Alert.alert("Error", "Failded to load data");
     }
   };
 
-  const sortedNotes = () =>{
-
-  return notes.sort((a, b) => {
-  const dateA = a?.updatedAt || a?.createdAt || Date.now();
-  const dateB = b?.updatedAt || b?.createdAt || Date.now();
-
-  const timestampA = new Date(dateA).getTime();
-  const timestampB = new Date(dateB).getTime();
-
-  return timestampB - timestampA;
-});
-  }
-
-
-useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       const unsubscribe = NetInfo.addEventListener(async (state) => {
         setIsOffline(!state.isConnected);
         if (state.isConnected) {
-          await syncNotes();
+          setIsSyncing(true);
+          syncNotes().then(() => setIsSyncing(false));
           getNotes();
         } else {
           getNotes();
         }
       });
 
-      getNotes(); // Initial fetch
+      getNotes();
       return () => unsubscribe();
     }, [isOffline])
   );
-useEffect(() => {
-    // Initialize socket with sync callback
+  useEffect(() => {
     const cleanup = initializeSocket((syncedNote) => {
-      setNotes(prevNotes => {
-        const noteExists = prevNotes.some(note => note.id === syncedNote.id);
+      setNotes((prevNotes) => {
+        const noteExists = prevNotes.some(
+          (note) => note.title === syncedNote.title
+        );
         if (noteExists) {
-          // Update existing note
-          return prevNotes.map(note => 
-            note.id === syncedNote.id ? syncedNote : note
+          return prevNotes.map((note) =>
+            note.title === syncedNote.title ? syncedNote : note
           );
         } else {
-          // Add new note
           return [...prevNotes, syncedNote];
         }
       });
@@ -78,9 +66,13 @@ useEffect(() => {
     };
   }, []);
 
+  if (isSyncing) {
+    return <Loader isSyncing={isSyncing} />;
+  }
   return (
     <View style={styles.container}>
       {isOffline && <Text style={styles.offlineBanner}>You are Offline</Text>}
+
       <FlatList
         data={notes}
         keyExtractor={(item) => item.id?.toString() || String(Math.random())}
@@ -91,6 +83,7 @@ useEffect(() => {
           </View>
         )}
       />
+
       <Button title="Create Note" onPress={handleNavigation} />
     </View>
   );
